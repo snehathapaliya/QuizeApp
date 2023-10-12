@@ -10,15 +10,7 @@ export default function App() {
     { id: 5, text: 'Question5' },
   ];
   return (
-    <View style={styles.container}>
-      <Text>Quiz App</Text>
-      <StatusBar style="auto" />
-      {boxesData.map((box) => (
-        <View key={box.id} style={styles.box}>
-          <Text style={styles.boxText}>{box.text}</Text>
-        </View>
-      ))}
-    </View>
+    <HomeScreen/>
   );
 }
 
