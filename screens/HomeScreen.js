@@ -1,138 +1,91 @@
-import { StyleSheet, Text, View, Image, Pressable } from "react-native";
-import React from "react";
-import { useNavigation } from "@react-navigation/native";
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React from 'react'
+import { useNavigation } from '@react-navigation/native'
 
-const homescreen = () => {
-    const navigation = useNavigation();
+const Homescreen = () => {
+  const navigation = useNavigation()
+
   return (
-    <View style={{ marginTop: 15 }}>
-      <Image
-        style={{ height: 370, width: "100%", resizeMode: "contain" }}
-        source={{
-          uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT9k2hf2J5rbVVpb4Z1Gy4y9D0vWZHQnA1dW6GxHchAKtufJapZ_bJOkZ_ESB3nDoSvgFw&usqp=CAU",
-        }}
-      />
+    <View style ={styles.container}>
+      <View style = {styles.categoryContainer}>
 
-      <View style={{ padding: 10 }}>
-        <Text
-          style={{
-            textAlign: "center",
-            color: "magenta",
-            fontSize: 20,
-            fontWeight: "600",
-          }}
+        <TouchableOpacity
+          style = {styles.category}
+          onPress={()=> navigation.navigate('Quizscreen', {category: 'world-affairs'})}
         >
-          QUIZ RULES
-        </Text>
+          <Text style ={styles.categoryTitle}>World-Affairs</Text>
+        </TouchableOpacity>
 
-        <View
-          style={{
-            padding: 10,
-            backgroundColor: "#F88379",
-            borderRadius: 6,
-            marginTop: 15,
-          }}
+        <TouchableOpacity
+          style = {styles.category}
+          onPress={()=> navigation.navigate('Quizscreen', {category: 'Science'})}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginVertical: 5,
-            }}
-          >
-            <Text style={{ color: "white" }}>•</Text>
-            <Text
-              style={{
-                marginLeft: 4,
-                color: "#722F37",
-                fontSize: 15,
-                fontWeight: "500",
-              }}
-            >
-              For each correct answer you get 5 points
-            </Text>
-          </View>
+          <Text style ={styles.categoryTitle}>Science</Text>
+        </TouchableOpacity>
 
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginVertical: 5,
-            }}
-          >
-            <Text style={{ color: "white" }}>•</Text>
-            <Text
-              style={{
-                marginLeft: 4,
-                color: "#722F37",
-                fontSize: 15,
-                fontWeight: "500",
-              }}
-            >
-              There is no negative marking for wrong answer
-            </Text>
-          </View>
+        <TouchableOpacity
+          style = {styles.category}
+          onPress={()=> navigation.navigate('Quizscreen', {category: 'Technology'})}
+        >
+          <Text style ={styles.categoryTitle}>Technology</Text>
+        </TouchableOpacity>
 
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginVertical: 5,
-            }}
-          >
-            <Text style={{ color: "white" }}>•</Text>
-            <Text
-              style={{
-                marginLeft: 4,
-                color: "#722F37",
-                fontSize: 15,
-                fontWeight: "500",
-              }}
-            >
-              Each question has a time limit of 15 sec
-            </Text>
-          </View>
+        <TouchableOpacity
+          style = {styles.category}
+          onPress={()=> navigation.navigate('Quizscreen', {category: 'Sports'})}
+        >
+          <Text style ={styles.categoryTitle}>Sports</Text>
+        </TouchableOpacity>
 
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginVertical: 5,
-            }}
-          >
-            <Text style={{ color: "white" }}>•</Text>
-            <Text
-              style={{
-                marginLeft: 4,
-                color: "#722F37",
-                fontSize: 15,
-                fontWeight: "500",
-              }}
-            >
-              You should answer all the questions compulsarily
-            </Text>
-          </View>
-        </View>
+        <TouchableOpacity
+          style = {styles.category}
+          onPress={()=> navigation.navigate('Quizscreen', {category: 'Literature'})}
+        >
+          <Text style ={styles.categoryTitle}>Literature</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style = {styles.category}
+          onPress={()=> navigation.navigate('Quizscreen', {category: 'Movies'})}
+        >
+          <Text style ={styles.categoryTitle}>Movies</Text>
+        </TouchableOpacity>
       </View>
-
-      <Pressable
-      onPress={() => navigation.navigate("Quiz")}
-        style={{
-          backgroundColor: "magenta",
-          padding: 14,
-          width:120,
-          borderRadius: 25,
-          marginLeft: "auto",
-          marginRight: "auto",
-          marginTop: 30,
-        }}
-      >
-        <Text style={{color:"white",fontWeight:"600",textAlign:"center"}}>Start Quiz</Text>
-      </Pressable>
+      <Text>QuizApp</Text>
     </View>
-  );
-};
+  )
+}
 
-export default homescreen;
+const styles = StyleSheet.create({
+  container:{
+    flex: 1,
+  },
+  categoryContainer:{
+    flexDirection :'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems:'center',
+    marginTop: 50,
+  },
+  category:{
+    width: 150,
+    height: 150,
+    margin: 10,
+    borderRaadius:10,
+    backgroundColor: '#ffffff',
+    shadowColor: '000000',
+    shadowOpacity:0.3,
+    shadowRadius: 5,
+    elevation: 5,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  categoryTitle:{
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#000000'
+  }
+});
 
-const styles = StyleSheet.create({});
+export default Homescreen

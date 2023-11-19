@@ -1,326 +1,219 @@
-import { StyleSheet, Text, SafeAreaView, View, Pressable } from "react-native";
-import React, { useState, useEffect } from "react";
-import questions from "../data/questions";
-import { useNavigation } from "@react-navigation/native";
-import { AntDesign } from "@expo/vector-icons";
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert } from 'react-native'
+import React, {useState, useEffect} from 'react'
+import { firebase } from '../config'
+
+
 const QuizScreen = () => {
-  const navigation = useNavigation();
-  const data = questions;
-  const totalQuestions = data.length;
-  // points
-  const [points, setPoints] = useState(0);
+  const [questions, setQuestion] = useState ([]);
+  const [selectedOptions, setSelectedOptions] = useState({});
+  const [score, setScore] = useState(0);
+  const [showResults, setshowResults] = useState(false);
 
-  // index of the question
-  const [index, setIndex] = useState(0);
-
-  // answer Status (true or false)
-  const [answerStatus, setAnswerStatus] = useState(null);
-
-  // answers
-  const [answers, setAnswers] = useState([]);
-
-  // selected answer
-  const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
-
-  // Counter
-  const [counter, setCounter] = useState(15);
-
-  // interval
-  let interval = null;
-
-  // progress bar
-  const progressPercentage = Math.floor((index/totalQuestions) * 100);
+  const { category } = route.params
 
   useEffect(() => {
-    if (selectedAnswerIndex !== null) {
-      if (selectedAnswerIndex === currentQuestion?.correctAnswerIndex) {
-        setPoints((points) => points + 10);
-        setAnswerStatus(true);
-        answers.push({ question: index + 1, answer: true });
-      } else {
-        setAnswerStatus(false);
-        answers.push({ question: index + 1, answer: false });
-      }
+    getQuestions({})
+  }, [])
+
+  const getQuestions = async () => {
+    setSelectedOptions({});
+    setshowResults(false);
+    const db = firebase.firestore();
+    const questionsRef = db.collections('questions');
+    const snapshot = await questionsRef.where('category', '==', category).get();
+    if (snapshot.empty) {
+      console.log('No matching documents..');
+      return;
     }
-  }, [selectedAnswerIndex]);
+    const allQuestions = snapshot.docs.map(doc => doc.data());
+    const shuffleQuestions = allQuestions.sort(() => 0.5 - Math.random());
+    setQuestions(shuffleQuestions.slice(0,10));
+  };
 
-  useEffect(() => {
-    setSelectedAnswerIndex(null);
-    setAnswerStatus(null);
-  }, [index]);
+  const handleOptionSelect = (questionIndex, option) => {
+    setSelectedOptions({
+      ...selectedOptions,
+      [questionIndex]: option,
+    });
+  };
 
-  useEffect(() => {
-    const myInterval = () => {
-      if (counter >= 1) {
-        setCounter((state) => state - 1);
+  const handleSubmit = () => {
+    let correctAnswers = 0;
+    questions.forEach((questions,index) =>{
+      if (selectedOptions[index] === questionIndex.correctOption){
+        correctAnswer++;
       }
-      if (counter === 0) {
-        setIndex(index + 1);
-        setCounter(15);
-      }
-    };
+    });
+    setScore(correctAnswers);
+    setshowResults(true);
+  };
 
-    interval = setTimeout(myInterval, 1000);
-
-    // clean up
-    return () => {
-      clearTimeout(interval);
-    };
-  }, [counter]);
-
-  useEffect(() => {
-    if (index + 1 > data.length) {
-      clearTimeout(interval)
-      navigation.navigate("Results", {
-        answers: answers,
-        points: points,
-      });
-    }
-  }, [index]);
-
-  useEffect(() => {
-    if (!interval) {
-      setCounter(15);
-    }
-  }, [index]);
-
-  const currentQuestion = data[index];
-  console.log(answerStatus)
 
   return (
-    <SafeAreaView>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: 10,
-        }}
-      >
-        <Text>Quiz Challenge</Text>
-        <Pressable
-          style={{ padding: 10, backgroundColor: "magenta", borderRadius: 20 }}
-        >
-          <Text
-            style={{ color: "white", textAlign: "center", fontWeight: "bold" }}
-          >
-            {counter}
-          </Text>
-        </Pressable>
-      </View>
+    <View style = {styles.container}>
+      <FlatList
+         data={questions}
+         keyExtractor = {(item, index) => index.toString()}
+         renderItem= {({item, index})=> (
+          <View>
+            style={styles.questionContainer}
+            <Text style={styles.question}>
+              {item.question}
+            </Text>
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginHorizontal: 10,
-        }}
-      >
-        <Text>Your Progress</Text>
-        <Text>
-          ({index}/{totalQuestions}) questions answered
-        </Text>
-      </View>
-
-      {/* Progress Bar */}
-      <View
-          style={{
-            backgroundColor: "white",
-            width: "100%",
-            flexDirection: "row",
-            alignItems: "center",
-            height: 10,
-            borderRadius: 20,
-            justifyContent: "center",
-            marginTop: 20,
-            marginLeft: 10,
-          }}
-        >
-          <Text
-            style={{
-              backgroundColor: "#FFC0CB",
-              borderRadius: 12,
-              position: "absolute",
-              left: 0,
-              height: 10,
-              right: 0,
-              width: `${progressPercentage}%`,
-              marginTop: 20,
-            }}
-          />
-        </View>
-
-      <View
-        style={{
-          marginTop: 30,
-          backgroundColor: "#F0F8FF",
-          padding: 10,
-          borderRadius: 6,
-        }}
-      >
-        <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-          {currentQuestion?.question}
-        </Text>
-        <View style={{ marginTop: 12 }}>
-          {currentQuestion?.options.map((item, index) => (
-            <Pressable
-              onPress={() =>
-                selectedAnswerIndex === null && setSelectedAnswerIndex(index)
-              }
-              style={
-                selectedAnswerIndex === index &&
-              index === currentQuestion.correctAnswerIndex
-                  ? {
-                      flexDirection: "row",
-                      alignItems: "center",
-                      borderWidth: 0.5,
-                      borderColor: "#00FFFF",
-                      marginVertical: 10,
-                      backgroundColor: "green",
-                      borderRadius: 20,
-                    }
-                  : selectedAnswerIndex != null && selectedAnswerIndex === index
-                  ? {
-                      flexDirection: "row",
-                      alignItems: "center",
-                      borderWidth: 0.5,
-                      borderColor: "#00FFFF",
-                      marginVertical: 10,
-                      backgroundColor: "red",
-                      borderRadius: 20,
-                    }
-                  : {
-                      flexDirection: "row",
-                      alignItems: "center",
-                      borderWidth: 0.5,
-                      borderColor: "#00FFFF",
-                      marginVertical: 10,
-                      borderRadius: 20,
-                    }
-              }
+            <TouchOpacity
+               style={[
+                styles.option,
+                selectedOptions[index] === 1 && styles.selectedOptions,
+                showResults && item.correctOption === 1 && styles.correctOption,
+                showResults && selectedOptions[index] === 1 && selectedOptions[index] !== item.correctOption && styles.wrongOption,
+               ]}
+               onPress={()=> handleOptionSelect(index,1)}
+               disabled = {showResults}
             >
-              {selectedAnswerIndex === index &&
-            index === currentQuestion.correctAnswerIndex ? (
-              <AntDesign
-              style={{
-                borderColor: "#00FFFF",
-                textAlign: "center",
-                borderWidth: 0.5,
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                padding: 10,
-              }}
-              name="check"
-              size={20}
-              color="white"
-            />
-              ) : selectedAnswerIndex != null &&
-                selectedAnswerIndex === index ? (
-                <AntDesign
-                  style={{
-                    borderColor: "#00FFFF",
-                    textAlign: "center",
-                    borderWidth: 0.5,
-                    width: 40,
-                    height: 40,
+              <Text>{item.option1}</Text>
+            </TouchOpacity>
 
-                    padding: 10,
-                    borderRadius: 20,
-                  }}
-                  name="closecircle"
-                  size={20}
-                  color="white"
-                />
-              ) : (
-                <Text
-                  style={{
-                    borderColor: "#00FFFF",
-                    textAlign: "center",
-                    borderWidth: 0.5,
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    padding: 10,
-                  }}
-                >
-                  {item.options}
+            <TouchOpacity
+               style={[
+                styles.option,
+                selectedOptions[index] === 2 && styles.selectedOptions,
+                showResults && item.correctOption === 2 && styles.correctOption,
+                showResults && selectedOptions[index] === 2 && selectedOptions[index] !== item.correctOption && styles.wrongOption,
+               ]}
+               onPress={()=> handleOptionSelect(index,1)}
+               disabled = {showResults}
+            >
+              <Text>{item.option2}</Text>
+            </TouchOpacity>
+
+            <TouchOpacity
+               style={[
+                styles.option,
+                selectedOptions[index] === 3 && styles.selectedOptions,
+                showResults && item.correctOption === 3 && styles.correctOption,
+                showResults && selectedOptions[index] === 3 && selectedOptions[index] !== item.correctOption && styles.wrongOption,
+               ]}
+               onPress={()=> handleOptionSelect(index,1)}
+               disabled = {showResults}
+            >
+              <Text>{item.option3}</Text>
+            </TouchOpacity>
+
+            <TouchOpacity
+               style={[
+                styles.option,
+                selectedOptions[index] === 4 && styles.selectedOptions,
+                showResults && item.correctOption === 4 && styles.correctOption,
+                showResults && selectedOptions[index] === 4 && selectedOptions[index] !== item.correctOption && styles.wrongOption,
+               ]}
+               onPress={()=> handleOptionSelect(index,1)}
+               disabled = {showResults}
+            >
+              <Text>{item.option4}</Text>
+            </TouchOpacity>
+            
+          </View>
+         )}
+      />
+      <TouchableOpacity>
+        style ={styles.submitButton}
+        onPress={handleSubmit}
+        disabled={showResults}
+
+        <Text style={styles.aubmitBUttonText}>Submit</Text>
+      </TouchableOpacity>
+      { showResults && (
+              <View style={styles.result}>
+                <Text 
+                     style={styles.resultText}
+                > 
+                     You scored {score} out of {questions.length}
                 </Text>
-              )}
+                <TouchableOpacity 
+                     style={styles.tyAgainButton}
+                     onPress={getQuestions}
+                     >
+                        <Text
+                        style={styles.tryAgainbuttontext}> Try Again</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
-              <Text style={{ marginLeft: 10 }}>{item.answer}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
+    </View>
+  )
+}
 
-      <View
-        style={
-          answerStatus === null
-            ? null
-            : {
-                marginTop: 45,
-                backgroundColor: "#F0F8FF",
-                padding: 10,
-                borderRadius: 7,
-                height: 120,
-              }
-        }
-      >
-        {answerStatus === null ? null : (
-          <Text
-            style={
-              answerStatus == null
-                ? null
-                : { fontSize: 17, textAlign: "center", fontWeight: "bold" }
-            }
-          >
-            {!!answerStatus ? "Correct Answer" : "Wrong Answer"}
-          </Text>
-        )}
+export default QuizScreen
 
-        {index + 1 >= questions.length ? (
-          <Pressable
-            onPress={() =>
-              navigation.navigate("Results", {
-                points: points,
-
-                answers: answers,
-              })
-            }
-            style={{
-              backgroundColor: "green",
-              padding: 10,
-              marginLeft: "auto",
-              marginRight: "auto",
-              marginTop: 20,
-              borderRadius: 6,
-            }}
-          >
-            <Text style={{ color: "white" }}>Done</Text>
-          </Pressable>
-        ) : answerStatus === null ? null : (
-          <Pressable
-            onPress={() => setIndex(index + 1)}
-            style={{
-              backgroundColor: "green",
-              padding: 10,
-              marginLeft: "auto",
-              marginRight: "auto",
-              marginTop: 20,
-              borderRadius: 6,
-            }}
-          >
-            <Text style={{ color: "white" }}>Next Question</Text>
-          </Pressable>
-        )}
-      </View>
-    </SafeAreaView>
-  );
-};
-
-export default QuizScreen;
-
-const styles = StyleSheet.create({});
-
+const styles = StyleSheet.create({
+    container:{
+      flex: 1,
+      backgroundColor: '#F5F5F5',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    questionContainer:{
+      backgroundColor: '#F5F5F5',
+      borderRadius:10,
+      marginButtom: 20,
+      padding: 20,
+      shadowColor: '#000',
+      shadowOffset:{
+        width:0,
+        height:2,
+      },
+      shadowOpacity:0.25,
+      shadowRadius:3.84,
+      elevation:5
+    },
+    question:{
+      fontSize:20,
+      fontWeight: 'bold',
+      marginVertical: 10
+    },
+    option:{
+      backgroundColor: '#eee',
+      padding: 10,
+      marginVertical:5,
+      borderRadius:5,
+    },
+    selectedOptions:{
+      bacgroundColor: '#949494', 
+    },
+    correctOption:{
+      backgroundColor: 'green',
+    },
+    wrongOption:{
+      backgroundColor: 'red'
+    },
+    submitButton:{
+      backgroundColor: 'blue',
+      padding: 10,
+      marginVertical: 10,
+      borderRadius: 5
+    },
+    submitButtonText:{
+      color: '#fff',
+      fontSize: 20
+    },
+    result:{
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    resultText:{
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginVertical: 10,
+    },
+    tryAgainButton:{
+      backgroundColor: 'blue',
+      padding: 10,
+      marginVertical: 10,
+      borderRadius: 5,
+    },
+    tryAgainButtontext:{
+      color: '#fff',
+      fontSize: 20
+    }
+  });
